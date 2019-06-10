@@ -1,9 +1,13 @@
-package Meeting02_Shooter;
-
-
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import java.awt.EventQueue;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -29,19 +33,35 @@ import java.awt.event.KeyEvent;
 
 class Shooter {
     private JFrame frame;
-
+    // control panel
+    private JLabel massLabel;
+    private JTextField bulletMass;
+    private JLabel forceLabel;
+    private JTextField windForce; 
+    private JLabel directionLabel;
+    private JTextField windDirection;
     // game area
     private Bullet bullet = null;
     private Cannon cannon;
-
-    private static final String INSTRUCTION = "Welcome to Cannon Simulation!\n" +
+    private static int limit = 10; // change capacity to limit the number of bullets
+    private static int shot = 0;
+    private static String INSTRUCTION = "Welcome to Cannon Simulation!\n" +
             "\nMove cannon's position = W A S D\n" +
             "Move shooting direction = Left | Right \n" +
             "Launch bullet = Space\n" +
-            "\nThere can only one bullet at a time";
+            "Try to keep the bullet inside the target\nfor as long as possible\n"+
+            "Bullets left: " + Integer.toString(limit);
 
     private int cpSize = 230;      // set control panel's width
-
+    public double getBulletMass() {
+        return Double.parseDouble(bulletMass.getText());
+    }
+    public double getWindForce() {
+        return Double.parseDouble(windForce.getText());
+    }
+    public double getWindDirection() {
+        return Double.parseDouble(windDirection.getText());
+    }
     public Shooter() {
         // setup the frame
         frame = new JFrame("Graphing App");
@@ -53,14 +73,51 @@ class Shooter {
 
         // setup control panel itself
         JTextArea instruction = new JTextArea(INSTRUCTION);
-        instruction.setBounds(5, 5, cpSize - 5, frame.getHeight());
+        instruction.setBounds(5, 5, cpSize - 5, frame.getHeight()/6);
+        instruction.setEditable(false);
         frame.add(instruction);
+
+        // Add text field for initial velocity
+        JTextField initialVelocity = new JTextField();
+        initialVelocity.setText("50");
+        initialVelocity.setBounds(5, frame.getHeight()/6 + 5, cpSize - 5, 20);
+        frame.add(initialVelocity);
+
+        // Add text fields for bullet mass, wind force and wind direction
+        JPanel controls = new JPanel();
+        controls.setLayout(new GridLayout(3, 2));
+        massLabel = new JLabel("Bullet mass:");
+        bulletMass = new JTextField("10");
+        forceLabel = new JLabel("Wind force:");
+        windForce = new JTextField("10");
+        directionLabel = new JLabel("Wind direction:");
+        windDirection = new JTextField("0");
+        controls.add(massLabel);
+        controls.add(bulletMass);
+        controls.add(forceLabel);
+        controls.add(windForce);
+        controls.add(directionLabel);
+        controls.add(windDirection);
+        controls.setBounds(5, frame.getHeight()/6+100, cpSize - 5, frame.getHeight()/5);
+        frame.add(controls);
 
         // setup drawing area
         DrawingArea drawingArea = new DrawingArea(frame.getWidth(), frame.getHeight(), cpSize);
         cannon = new Cannon(drawingArea.GRAPH_SCALE / 2, drawingArea.getOriginX(), drawingArea.getOriginY());
         drawingArea.setCannon(cannon);
         frame.add(drawingArea);
+
+        // Add button for shooting
+        JButton focus = new JButton("Refocus");
+        focus.setBounds(5, frame.getHeight()/6+50, cpSize - 5, 30);
+        focus.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e)
+            {
+                frame.setFocusable(true);
+                frame.requestFocus();
+            }
+        });
+        frame.add(focus);
 
         // Keyboard shortcuts
         frame.addKeyListener(new KeyAdapter() {
@@ -69,9 +126,19 @@ class Shooter {
                 super.keyPressed(e);
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_SPACE:
-                        bullet = new Bullet(cannon.getBarrelWidth() / 2, (int) cannon.getBarrelMouthX(), (int) cannon.getBarrelMouthY(), cannon.getAngle());
-                        drawingArea.setBullet(bullet);
-                        bullet.shoot();
+                        if(shot < limit) {
+                            bullet = new Bullet(cannon.getBarrelWidth() / 2, (int) cannon.getBarrelMouthX(), (int) cannon.getBarrelMouthY(), cannon.getAngle(), Double.parseDouble(initialVelocity.getText()), drawingArea.getTime(), getBulletMass(), getWindForce(), getWindDirection());
+                            bullet.shoot();
+                            drawingArea.addBullet(bullet);
+                            shot++;
+                            INSTRUCTION = "Welcome to Cannon Simulation!\n" +
+                            "\nMove cannon's position = W A S D\n" +
+                            "Move shooting direction = Left | Right \n" +
+                            "Launch bullet = Space\n" +
+                            "Try to keep the bullet inside the target\nfor as long as possible\n"+
+                            "Bullets left: " + Integer.toString(limit - shot);
+                            instruction.setText(INSTRUCTION);
+                        }
                         break;
                     case KeyEvent.VK_LEFT:
                         cannon.rotateLeft();
@@ -94,7 +161,9 @@ class Shooter {
                 }
             }
         });
-
+        // Add target
+        Target target = new Target(75, frame.getWidth() * 3 / 5, drawingArea.getTime(), frame.getHeight());
+        drawingArea.setTarget(target);
         drawingArea.start();
     }
 
