@@ -1,18 +1,14 @@
-package Meeting01_GraphingApp;
-
 /*
     Matfis pertemuan 01
     Simple graphing app
     All UI-elements are measured in pixels, while the functions are drawn in units and angle is in radian
     Please write every decimals with dot (.) not comma (,)
-
     Explain how the graphing app works, which controls the coordinates shown, what functions are drawn.
     Generally, in screen with double-buffer system, there would be one layer to be displayed and another layer to be drawn on
     Thus in event loop, there are three steps:
     - Update the module (NPC's movement, player's action, etc)
     - Render the new updates in the drawing layer
     - Change current display layer with the previously drawn layer.
-
     TODO:
      1. Play with the app. What does each field do? What's the difference if you change one field? What if you use smaller/bigger increment factor?
      2. Change the function into another continuous linear/polynomial function
@@ -67,25 +63,25 @@ class GraphingApp {
         // the x-axis would be shown from -lengthX to lengthX
         JLabel labelLengthX = new JLabel("Length of X axis");
         controlPanel.add(labelLengthX);
-        fieldLengthX = new JTextField(2);
+        fieldLengthX = new JTextField("30");
         controlPanel.add(fieldLengthX);
 
         // the y-axis would be shown from -lengthY to lengthY
         JLabel labelLengthY = new JLabel("Length of Y axis");
         controlPanel.add(labelLengthY);
-        fieldLengthY = new JTextField(2);
+        fieldLengthY = new JTextField("30");
         controlPanel.add(fieldLengthY);
 
         // function calculation will start from startX
         JLabel labelBegin = new JLabel("Start point from X");
         controlPanel.add(labelBegin);
-        fieldBegin = new JTextField(2);
+        fieldBegin = new JTextField("-30");
         controlPanel.add(fieldBegin);
 
         // the lesser the number, the more detailed it will become
         JLabel labelIncrement = new JLabel("Incremental factor");
         controlPanel.add(labelIncrement);
-        fieldIncrement = new JTextField(2);
+        fieldIncrement = new JTextField("0.1");
         controlPanel.add(fieldIncrement);
 
         // clicking the button will start the animation
@@ -96,9 +92,15 @@ class GraphingApp {
 
     // get values from text fields
     private void sendValuesToDrawer() {
-        double lengthX = Double.parseDouble(fieldLengthX.getText());
-        double lengthY = Double.parseDouble(fieldLengthY.getText());
-        double begin = Double.parseDouble(fieldBegin.getText());
+        double lengthX = Double.parseDouble(fieldLengthX.getText()); // This sets the graph's x range from -x to x
+        double lengthY = Double.parseDouble(fieldLengthY.getText()); // This sets the graph's y range from -y to y
+        // the value from begin sets the graph's starting point from the specified x
+        // So that if the specified range is from -5 to 5 but the starting point is from 0, then the line is drawn from 0, not -5. (Does not apply for parametric and polar)
+        double begin = Double.parseDouble(fieldBegin.getText()); 
+        // This sets the step, or by how much is the distance of two points
+        // Lower causes the graph to be smoother (especially for curves) but takes longer to process
+        // For parametric this is treated as the t increment.
+        // For polar, this is treated as the theta increment.
         double increment = Double.parseDouble(fieldIncrement.getText());
         drawingArea.beginDrawing(lengthX, lengthY, begin, increment);
         drawingArea.beginDrawing(lengthX, lengthY, begin, increment);
